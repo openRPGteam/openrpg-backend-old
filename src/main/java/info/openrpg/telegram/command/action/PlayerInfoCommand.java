@@ -1,25 +1,37 @@
 package info.openrpg.telegram.command.action;
 
 import info.openrpg.db.player.Player;
-import info.openrpg.telegram.OpenRpgBot;
-import org.hibernate.Session;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
+import javax.persistence.EntityManager;
+import java.util.Collections;
 import java.util.List;
 
 public class PlayerInfoCommand implements ExecutableCommand {
     @Override
-    public void execute(Session session, Update update, OpenRpgBot bot) {
-        List<Player> result = session.createQuery("select p from player p where p.id = :id", Player.class)
-                .setParameter("id",  Integer.parseInt(update.getMessage().getText().split(" ")[1]))
-                .list();
-        for (Player event : result) {
-            bot.sendMessage(update, "Пидора зовут: " + event.getFirstName() + " " + event.getLastName());
-        }
+    public List<SendMessage> execute(EntityManager entityManager, Update update) {
+        return entityManager.createQuery("from Player p where p.userName = :id", Player.class)
+                .setParameter("id", update.getMessage().getText().split(" ")[1])
+                .getResultList()
+                .stream()
+                .findFirst()
+                .map(player -> new SendMessage()
+                        .setChatId(update.getMessage().getChatId())
+                        .setText("Пидора зовут: " + player.getFirstName() + " " + player.getLastName())
+                        .enableHtml(true)
+                )
+                .map(Collections::singletonList)
+                .orElse(Collections.singletonList(
+                        new SendMessage()
+                                .setChatId(update.getMessage().getChatId())
+                                .setText("Такого пидора пока нет")
+                                .enableHtml(true))
+                );
     }
 
     @Override
-    public void handleCrash(RuntimeException e, Update update, OpenRpgBot bot) {
-
+    public List<SendMessage> handleCrash(RuntimeException e, Update update) {
+        return Collections.emptyList();
     }
 }

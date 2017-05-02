@@ -1,13 +1,15 @@
 package info.openrpg.telegram.command.action;
 
 import info.openrpg.db.player.Player;
-import info.openrpg.telegram.OpenRpgBot;
-import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
 
+import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
+import java.util.Collections;
+import java.util.List;
 
 public class StartCommand implements ExecutableCommand {
 
@@ -15,7 +17,7 @@ public class StartCommand implements ExecutableCommand {
     public static final String FIRST_MESSAGE = "Спасибо за регистрацию";
 
     @Override
-    public void execute(Session session, Update update, OpenRpgBot bot) {
+    public List<SendMessage> execute(EntityManager entityManager, Update update) {
         User user = update.getMessage().getFrom();
         Player player = Player.builder()
                 .id(user.getId())
@@ -23,16 +25,25 @@ public class StartCommand implements ExecutableCommand {
                 .lastName(user.getLastName())
                 .userName(user.getUserName())
                 .build();
-        session.save(player);
-        bot.sendMessage(update, FIRST_MESSAGE);
+        entityManager.persist(player);
+        return Collections.singletonList(
+                new SendMessage()
+                        .setChatId(update.getMessage().getChatId())
+                        .setText(FIRST_MESSAGE)
+        );
     }
 
     @Override
-    public void handleCrash(RuntimeException e, Update update, OpenRpgBot bot) {
+    public List<SendMessage> handleCrash(RuntimeException e, Update update) {
         if (e instanceof PersistenceException) {
             if (e.getCause() instanceof ConstraintViolationException) {
-                bot.sendMessage(update, ALREADY_REGISTERED_MESSAGE);
+                return Collections.singletonList(
+                        new SendMessage()
+                                .setChatId(update.getMessage().getChatId())
+                                .setText(ALREADY_REGISTERED_MESSAGE)
+                );
             }
         }
+        return Collections.emptyList();
     }
 }

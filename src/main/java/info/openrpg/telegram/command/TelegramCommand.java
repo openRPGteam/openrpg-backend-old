@@ -10,7 +10,7 @@ public enum TelegramCommand {
     VOID(new DoNothingComand()),
     START(new StartCommand()),
     HELP(new HelpCommand()),
-    PLAYER_INFO(new PlayerInfoCommand()),;
+    PLAYER_INFO(new PlayerInfoCommand());
 
     private ExecutableCommand executableCommand;
 }

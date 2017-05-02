@@ -1,10 +1,12 @@
 package info.openrpg.telegram.command.action;
 
-import info.openrpg.telegram.OpenRpgBot;
-import org.hibernate.Session;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
+import javax.persistence.EntityManager;
+import java.util.List;
+
 public interface ExecutableCommand {
-    void execute(Session session, Update update, OpenRpgBot bot);
-    void handleCrash(RuntimeException e, Update update, OpenRpgBot bot);
+    List<SendMessage> execute(EntityManager entityManager, Update update);
+    List<SendMessage> handleCrash(RuntimeException e, Update update);
 }
