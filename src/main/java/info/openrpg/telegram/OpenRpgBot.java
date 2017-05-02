@@ -2,6 +2,7 @@ package info.openrpg.telegram;
 
 import info.openrpg.db.player.Player;
 import info.openrpg.telegram.command.CommandChooser;
+import info.openrpg.telegram.command.TelegramCommand;
 import info.openrpg.telegram.command.action.ExecutableCommand;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -12,9 +13,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import javax.persistence.EntityManager;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class OpenRpgBot extends TelegramLongPollingBot {
@@ -38,13 +37,16 @@ public class OpenRpgBot extends TelegramLongPollingBot {
         Optional.of(update)
                 .map(Update::getMessage)
                 .map(Message::getText)
-                .ifPresent((String text) -> {
-                            logger.info(text);
+                .map(text -> {
+                    logger.info(text);
+                    return text;
+                })
+                .map(text -> commandChooser.chooseCommand(text))
+                .filter(command -> command != TelegramCommand.VOID)
+                .map(TelegramCommand::getExecutableCommand)
+                .ifPresent(executableCommand -> {
                             EntityManager entityManager = sessionFactory.createEntityManager();
                             entityManager.getTransaction().begin();
-                            ExecutableCommand executableCommand = commandChooser
-                                    .chooseCommand(text)
-                                    .getExecutableCommand();
                             try {
                                 List<SendMessage> sendMessageList = executableCommand.execute(entityManager, update);
                                 entityManager.getTransaction().commit();
@@ -53,10 +55,17 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                                 }
                             } catch (RuntimeException e) {
                                 entityManager.getTransaction().rollback();
-                                List<SendMessage> sendMessageList = executableCommand.handleCrash(e, update);
-                                for (SendMessage sendMessage : sendMessageList) {
-                                    sendText(sendMessage);
-                                }
+                                Optional.of(executableCommand.handleCrash(e, update))
+                                        .filter(sendMessages -> !sendMessages.isEmpty())
+                                        .orElseGet(() -> {
+                                            logger.warning(e.getMessage());
+                                            return Collections.singletonList(
+                                                    new SendMessage()
+                                                            .setText("Извини, что-то пошло не так.\nРазработчик получает пизды.")
+                                                            .setChatId(update.getMessage().getChatId())
+                                            );
+                                        })
+                                        .forEach(this::sendText);
                             }
                             entityManager.close();
                         }
