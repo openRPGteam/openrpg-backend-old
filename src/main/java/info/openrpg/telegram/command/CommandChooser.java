@@ -18,8 +18,6 @@ public class CommandChooser {
     public TelegramCommand chooseCommand(String rawText) {
         return Optional.of(rawText)
                 .filter(text -> text.startsWith("/"))
-                .map(String::trim)
-                .map(text -> text.split(" ")[0])
                 .map(text -> Optional.ofNullable(commandMap.get(text))
                         .orElse(TelegramCommand.VOID))
                 .orElse(TelegramCommand.VOID);

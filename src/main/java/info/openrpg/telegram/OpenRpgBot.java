@@ -45,18 +45,22 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                     logger.info(text);
                     return text;
                 })
-                .map(text -> commandChooser.chooseCommand(text))
+                .map(UserInput::new)
+                .ifPresent(userInput -> executeCommandByUserInput(update, userInput));
+    }
+
+    private void executeCommandByUserInput(Update update, UserInput userInput) {
+        Optional.of(userInput)
+                .map(text -> commandChooser.chooseCommand(text.getCommand()))
                 .filter(command -> command != TelegramCommand.VOID)
                 .map(TelegramCommand::getExecutableCommand)
                 .ifPresent(executableCommand -> {
                             EntityManager entityManager = sessionFactory.createEntityManager();
                             entityManager.getTransaction().begin();
                             try {
-                                List<SendMessage> sendMessageList = executableCommand.execute(entityManager, update);
+                                List<SendMessage> sendMessageList = executableCommand.execute(entityManager, update, userInput);
                                 entityManager.getTransaction().commit();
-                                for (SendMessage sendMessage : sendMessageList) {
-                                    sendText(sendMessage);
-                                }
+                                sendMessageList.forEach(this::sendText);
                             } catch (RuntimeException e) {
                                 entityManager.getTransaction().rollback();
                                 Optional.of(executableCommand.handleCrash(e, update))

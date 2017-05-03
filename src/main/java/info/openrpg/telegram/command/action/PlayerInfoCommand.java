@@ -2,6 +2,7 @@ package info.openrpg.telegram.command.action;
 
 import com.google.common.base.Joiner;
 import info.openrpg.db.player.Player;
+import info.openrpg.telegram.UserInput;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
@@ -20,7 +21,7 @@ public class PlayerInfoCommand implements ExecutableCommand {
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
 
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, Update update) {
+    public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
         return entityManager.createQuery("from Player p where p.userName = :id", Player.class)
                 .setParameter("id", update.getMessage().getText().split(" ")[1])
                 .getResultList()

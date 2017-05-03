@@ -1,5 +1,6 @@
 package info.openrpg.telegram.command.action;
 
+import info.openrpg.telegram.UserInput;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
@@ -12,7 +13,7 @@ public class HelpCommand implements ExecutableCommand {
     private static final String HELP_MESSAGE = "Ты пидор";
 
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, Update update) {
+    public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
         return Collections.singletonList(
                 new SendMessage()
                         .setChatId(update.getMessage().getChatId())
