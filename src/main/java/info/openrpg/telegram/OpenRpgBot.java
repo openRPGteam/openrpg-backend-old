@@ -1,5 +1,6 @@
 package info.openrpg.telegram;
 
+import info.openrpg.db.player.Chat;
 import info.openrpg.db.player.Player;
 import info.openrpg.telegram.command.CommandChooser;
 import info.openrpg.telegram.command.TelegramCommand;
@@ -31,6 +32,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                 .addPackage("db.player")
                 .addProperties(properties)
                 .addAnnotatedClass(Player.class)
+                .addAnnotatedClass(Chat.class)
                 .buildSessionFactory();
         commandChooser = new CommandChooser();
     }
@@ -61,6 +63,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                                         .filter(sendMessages -> !sendMessages.isEmpty())
                                         .orElseGet(() -> {
                                             logger.warning(e.getClass().getName());
+                                            e.printStackTrace();
                                             return Collections.singletonList(
                                                     new SendMessage()
                                                             .setText("Извини, что-то пошло не так.\nРазработчик получает пизды.")

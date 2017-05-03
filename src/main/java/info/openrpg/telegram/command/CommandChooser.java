@@ -12,11 +12,13 @@ public class CommandChooser {
         commandMap.put("/help", TelegramCommand.HELP);
         commandMap.put("/player_info", TelegramCommand.PLAYER_INFO);
         commandMap.put("/start", TelegramCommand.START);
+        commandMap.put("/peek_player", TelegramCommand.PEEK_PLAYER);
     }
 
     public TelegramCommand chooseCommand(String rawText) {
         return Optional.of(rawText)
                 .filter(text -> text.startsWith("/"))
+                .map(String::trim)
                 .map(text -> text.split(" ")[0])
                 .map(text -> Optional.ofNullable(commandMap.get(text))
                         .orElse(TelegramCommand.VOID))

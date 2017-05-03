@@ -1,5 +1,6 @@
 package info.openrpg.telegram.command.action;
 
+import info.openrpg.db.player.Chat;
 import info.openrpg.db.player.Player;
 import org.hibernate.exception.ConstraintViolationException;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -25,7 +26,14 @@ public class StartCommand implements ExecutableCommand {
                 .lastName(user.getLastName())
                 .userName(user.getUserName())
                 .build();
+        Chat chat = Chat.builder()
+                .id(update.getMessage().getChatId())
+                .player(player)
+                .build();
+
         entityManager.persist(player);
+        entityManager.persist(chat);
+
         return Collections.singletonList(
                 new SendMessage()
                         .setChatId(update.getMessage().getChatId())
