@@ -3,7 +3,6 @@ package info.openrpg.telegram;
 import info.openrpg.db.player.Player;
 import info.openrpg.telegram.command.CommandChooser;
 import info.openrpg.telegram.command.TelegramCommand;
-import info.openrpg.telegram.command.action.ExecutableCommand;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -13,7 +12,10 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class OpenRpgBot extends TelegramLongPollingBot {
@@ -58,7 +60,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                                 Optional.of(executableCommand.handleCrash(e, update))
                                         .filter(sendMessages -> !sendMessages.isEmpty())
                                         .orElseGet(() -> {
-                                            logger.warning(e.getMessage());
+                                            logger.warning(e.getClass().getName());
                                             return Collections.singletonList(
                                                     new SendMessage()
                                                             .setText("Извини, что-то пошло не так.\nРазработчик получает пизды.")

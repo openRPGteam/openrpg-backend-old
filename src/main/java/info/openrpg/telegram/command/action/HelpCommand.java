@@ -9,12 +9,14 @@ import java.util.List;
 
 public class HelpCommand implements ExecutableCommand {
 
+    private static final String HELP_MESSAGE = "Ты пидор";
+
     @Override
     public List<SendMessage> execute(EntityManager entityManager, Update update) {
         return Collections.singletonList(
                 new SendMessage()
                         .setChatId(update.getMessage().getChatId())
-                        .setText("Ты пидор").enableHtml(true));
+                        .setText(HELP_MESSAGE).enableHtml(true));
     }
 
     @Override
