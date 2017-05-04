@@ -1,24 +1,23 @@
 package info.openrpg.telegram.command.action;
 
 import com.google.common.base.Joiner;
-import info.openrpg.db.player.Chat;
 import info.openrpg.db.player.Player;
 import info.openrpg.telegram.UserInput;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class PeekPlayer implements ExecutableCommand {
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
     private static final String UNKNOWN_PLAYER_MESSAGE = "Ты попытался потыкать палкой несуществующего пидора.";
     private static final String PLAYER_PEEKED_MESSAGE = "Тебя потыкал палкой";
-    private static final String WRONG_ARGUMENTS_NUMBER_MESSAGE = "Неправильный формат команды";
+    private static final String WRONG_ARGUMENTS_NUMBER_MESSAGE = "Неправильный формат команды\n" +
+            "Пример:\n" +
+            "/peek_player DarkCasual";
 
     @Override
     public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
@@ -52,7 +51,7 @@ public class PeekPlayer implements ExecutableCommand {
     }
 
     private List<Player> getPlayerByQueryAndUserName(EntityManager entityManager, String userName) {
-        return entityManager.createQuery("from Player p where p.userName = :id", Player.class)
+        return entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
                 .setParameter("userName", userName)
                 .getResultList();
     }
