@@ -32,7 +32,7 @@ public class SendMessageCommand implements ExecutableCommand {
                         .stream()
                         .findFirst()
                         .map(player -> new SendMessage()
-                                .setChatId(update.getMessage().getChatId())
+                                .setChatId(new Long(player.getId()))
                                 .setText(JOINER.join(
                                         PLAYER_PEEKED_MESSAGE,
                                         "@".concat(userInput.getArgument(1)).concat(":"),
