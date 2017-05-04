@@ -15,12 +15,12 @@ public class CommandChooserTest {
 
     @Test
     public void testVoidCommand() throws Exception {
-        assertEquals(TelegramCommand.VOID, commandChooser.chooseCommand("/"));
+        assertEquals(TelegramCommand.NOTHING, commandChooser.chooseCommand("/"));
     }
 
     @Test
     public void testVoidCommandWithoutSLash() throws Exception {
-        assertEquals(TelegramCommand.VOID, commandChooser.chooseCommand(""));
+        assertEquals(TelegramCommand.NOTHING, commandChooser.chooseCommand(""));
     }
 
     @Test

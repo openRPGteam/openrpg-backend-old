@@ -19,8 +19,7 @@ public class CommandChooser {
     public TelegramCommand chooseCommand(String rawText) {
         return Optional.of(rawText)
                 .filter(text -> text.startsWith("/"))
-                .map(text -> Optional.ofNullable(commandMap.get(text))
-                        .orElse(TelegramCommand.NOTHING))
+                .map(text -> commandMap.get(text))
                 .orElse(TelegramCommand.NOTHING);
     }
 }

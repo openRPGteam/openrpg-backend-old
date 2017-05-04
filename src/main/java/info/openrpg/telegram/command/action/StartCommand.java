@@ -15,8 +15,8 @@ import java.util.List;
 
 public class StartCommand implements ExecutableCommand {
 
-    public static final String ALREADY_REGISTERED_MESSAGE = "Ты уже зарегистрирован";
-    public static final String FIRST_MESSAGE = "Спасибо за регистрацию";
+    private static final String ALREADY_REGISTERED_MESSAGE = "Ты уже зарегистрирован";
+    private static final String FIRST_MESSAGE = "Спасибо за регистрацию";
 
     @Override
     public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {

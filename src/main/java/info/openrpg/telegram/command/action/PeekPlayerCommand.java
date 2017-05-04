@@ -24,18 +24,7 @@ public class PeekPlayerCommand implements ExecutableCommand {
         return Optional.of(userInput)
                 .filter(ui -> ui.hasArguments(1))
                 .map(ui -> ui.getArgument(1))
-                .map(userName -> getPlayerByQueryAndUserName(entityManager, userName)
-                        .stream()
-                        .findFirst()
-                        .map(player -> new SendMessage()
-                                .setChatId(String.valueOf(player.getId()))
-                                .setText(JOINER.join(PLAYER_PEEKED_MESSAGE, "@".concat(update.getMessage().getFrom().getUserName())))
-                        )
-                        .orElse(new SendMessage()
-                                .setChatId(update.getMessage().getChatId())
-                                .setText(UNKNOWN_PLAYER_MESSAGE)
-                        )
-                )
+                .map(userName -> getPlayerByUsername(entityManager, update, userName))
                 .map(Collections::singletonList)
                 .orElse(Collections.singletonList(
                         new SendMessage()
@@ -50,9 +39,19 @@ public class PeekPlayerCommand implements ExecutableCommand {
         return Collections.emptyList();
     }
 
-    private List<Player> getPlayerByQueryAndUserName(EntityManager entityManager, String userName) {
+    private SendMessage getPlayerByUsername(EntityManager entityManager, Update update, String userName) {
         return entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
                 .setParameter("userName", userName)
-                .getResultList();
+                .getResultList()
+                .stream()
+                .findFirst()
+                .map(player -> new SendMessage()
+                        .setChatId(String.valueOf(player.getId()))
+                        .setText(JOINER.join(PLAYER_PEEKED_MESSAGE, "@".concat(update.getMessage().getFrom().getUserName())))
+                )
+                .orElse(new SendMessage()
+                        .setChatId(update.getMessage().getChatId())
+                        .setText(UNKNOWN_PLAYER_MESSAGE)
+                );
     }
 }
