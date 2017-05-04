@@ -1,11 +1,8 @@
 package info.openrpg.telegram;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.Optional;
 
-@Getter
 public class UserInput {
     private String command;
     private String[] arguments;
@@ -23,7 +20,24 @@ public class UserInput {
                 .orElse( null);
     }
 
+    public String getCommand() {
+        return command;
+    }
+
     public boolean hasArguments() {
         return arguments != null;
     }
+
+    public boolean hasArguments(int numberOfArguments) {
+        return arguments.length >= numberOfArguments;
+    }
+
+    public String getArgument(int index) {
+        return arguments[index-1];
+    }
+
+    public int size() {
+        return arguments != null ? arguments.length : 0;
+    }
+
 }

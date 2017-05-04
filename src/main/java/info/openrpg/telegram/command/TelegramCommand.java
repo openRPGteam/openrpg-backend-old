@@ -11,7 +11,8 @@ public enum TelegramCommand {
     START(new StartCommand()),
     HELP(new HelpCommand()),
     PLAYER_INFO(new PlayerInfoCommand()),
-    PEEK_PLAYER(new PeekPlayer());
+    PEEK_PLAYER(new PeekPlayerCommand()),
+    SEND_MESSAGE(new SendMessageCommand());
 
     private ExecutableCommand executableCommand;
 }

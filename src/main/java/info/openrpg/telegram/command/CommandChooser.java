@@ -13,6 +13,7 @@ public class CommandChooser {
         commandMap.put("/player_info", TelegramCommand.PLAYER_INFO);
         commandMap.put("/start", TelegramCommand.START);
         commandMap.put("/peek_player", TelegramCommand.PEEK_PLAYER);
+        commandMap.put("/send_message", TelegramCommand.SEND_MESSAGE);
     }
 
     public TelegramCommand chooseCommand(String rawText) {

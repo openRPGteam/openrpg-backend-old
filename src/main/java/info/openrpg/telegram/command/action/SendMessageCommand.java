@@ -10,21 +10,22 @@ import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class PlayerInfoCommand implements ExecutableCommand {
+public class SendMessageCommand implements ExecutableCommand {
 
-    private static final String WRONG_FORMAT_MESSAGE =
-            "Неправильный формат команды.\n" +
-                    "Пример:\n" +
-                    "/player_info DarkCasual";
-    private static final String NOT_FOUNT_PLAYER_MESSAGE = "Такого пидора пока нет";
-    private static final String PLAYER_NAME_HEADER_MESSAGE = "Пидора зовут: ";
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
+    private static final String UNKNOWN_PLAYER_MESSAGE = "Ты попытался потыкать палкой несуществующего пидора.";
+    private static final String PLAYER_PEEKED_MESSAGE = "Тебе передал сообщение";
+    private static final String WRONG_FORMAT_MESSAGE = "Неправильный формат команды\n" +
+            "Пример:\n" +
+            "/send_message DarkCasual Привет";
 
     @Override
     public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
         return Optional.of(userInput)
-                .filter(ui -> ui.hasArguments(1))
+                .filter(ui -> ui.hasArguments(2))
                 .map(ui -> entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
                         .setParameter("userName", userInput.getArgument(1))
                         .getResultList()
@@ -32,12 +33,20 @@ public class PlayerInfoCommand implements ExecutableCommand {
                         .findFirst()
                         .map(player -> new SendMessage()
                                 .setChatId(update.getMessage().getChatId())
-                                .setText(JOINER.join(PLAYER_NAME_HEADER_MESSAGE, player.getFirstName(), player.getLastName()))
+                                .setText(JOINER.join(
+                                        PLAYER_PEEKED_MESSAGE,
+                                        "@".concat(userInput.getArgument(1)).concat(":"),
+                                        JOINER.join(
+                                                IntStream.rangeClosed(2, ui.size())
+                                                        .mapToObj(ui::getArgument)
+                                                        .collect(Collectors.toList()))
+                                        )
+                                )
                         )
                         .map(Collections::singletonList)
                         .orElse(Collections.singletonList(new SendMessage()
-                                .setChatId(update.getMessage().getChatId())
-                                .setText(NOT_FOUNT_PLAYER_MESSAGE)
+                                        .setChatId(update.getMessage().getChatId())
+                                        .setText(UNKNOWN_PLAYER_MESSAGE)
                                 )
                         )
                 )

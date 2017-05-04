@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class PeekPlayer implements ExecutableCommand {
+public class PeekPlayerCommand implements ExecutableCommand {
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
     private static final String UNKNOWN_PLAYER_MESSAGE = "Ты попытался потыкать палкой несуществующего пидора.";
     private static final String PLAYER_PEEKED_MESSAGE = "Тебя потыкал палкой";
@@ -22,8 +22,8 @@ public class PeekPlayer implements ExecutableCommand {
     @Override
     public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
         return Optional.of(userInput)
-                .filter(UserInput::hasArguments)
-                .map(ui -> ui.getArguments()[0])
+                .filter(ui -> ui.hasArguments(1))
+                .map(ui -> ui.getArgument(1))
                 .map(userName -> getPlayerByQueryAndUserName(entityManager, userName)
                         .stream()
                         .findFirst()
