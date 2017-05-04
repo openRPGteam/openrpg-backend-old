@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum TelegramCommand {
-    VOID(new DoNothingComand()),
+    NOTHING(new DoNothingComand()),
     START(new StartCommand()),
     HELP(new HelpCommand()),
     PLAYER_INFO(new PlayerInfoCommand()),

@@ -1,18 +1,21 @@
 package info.openrpg.telegram;
 
+import info.openrpg.telegram.command.CommandChooser;
+import info.openrpg.telegram.command.TelegramCommand;
+
 import java.util.Arrays;
 import java.util.Optional;
 
 public class UserInput {
-    private String command;
+    private TelegramCommand command;
     private String[] arguments;
 
-    public UserInput(String inputString) {
+    public UserInput(String inputString, CommandChooser commandChooser) {
         this.arguments = Optional.of(inputString)
                 .map(String::trim)
                 .map(s -> s.split(" "))
                 .map(arr -> {
-                    this.command = arr[0];
+                    this.command = commandChooser.chooseCommand(arr[0]);
                     return arr;
                 })
                 .filter(arr -> arr.length > 1)
@@ -20,7 +23,7 @@ public class UserInput {
                 .orElse( null);
     }
 
-    public String getCommand() {
+    public TelegramCommand getCommand() {
         return command;
     }
 

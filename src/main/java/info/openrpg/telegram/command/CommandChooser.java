@@ -20,7 +20,7 @@ public class CommandChooser {
         return Optional.of(rawText)
                 .filter(text -> text.startsWith("/"))
                 .map(text -> Optional.ofNullable(commandMap.get(text))
-                        .orElse(TelegramCommand.VOID))
-                .orElse(TelegramCommand.VOID);
+                        .orElse(TelegramCommand.NOTHING))
+                .orElse(TelegramCommand.NOTHING);
     }
 }
