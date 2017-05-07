@@ -1,4 +1,4 @@
-package info.openrpg.telegram.command.action;
+package info.openrpg.telegram.commands.actions;
 
 import info.openrpg.db.player.Chat;
 import info.openrpg.db.player.Player;

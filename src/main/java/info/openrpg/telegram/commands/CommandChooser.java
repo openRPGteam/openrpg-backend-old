@@ -1,4 +1,6 @@
-package info.openrpg.telegram.command;
+package info.openrpg.telegram.commands;
+
+import info.openrpg.constants.Commands;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,11 +11,11 @@ public class CommandChooser {
 
     public CommandChooser() {
         this.commandMap = new HashMap<>();
-        commandMap.put("/help", TelegramCommand.HELP);
-        commandMap.put("/player_info", TelegramCommand.PLAYER_INFO);
-        commandMap.put("/start", TelegramCommand.START);
-        commandMap.put("/peek_player", TelegramCommand.PEEK_PLAYER);
-        commandMap.put("/send_message", TelegramCommand.SEND_MESSAGE);
+        commandMap.put(Commands.HELP, TelegramCommand.HELP);
+        commandMap.put(Commands.PLAYER_INFO, TelegramCommand.PLAYER_INFO);
+        commandMap.put(Commands.START, TelegramCommand.START);
+        commandMap.put(Commands.PEEK_PLAYER, TelegramCommand.PEEK_PLAYER);
+        commandMap.put(Commands.SEND_MESSAGE, TelegramCommand.SEND_MESSAGE);
     }
 
     public TelegramCommand chooseCommand(String rawText) {

@@ -1,4 +1,4 @@
-package info.openrpg.telegram.command.action;
+package info.openrpg.telegram.commands.actions;
 
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;

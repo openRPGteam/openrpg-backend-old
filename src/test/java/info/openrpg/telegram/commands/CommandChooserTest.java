@@ -1,4 +1,4 @@
-package info.openrpg.telegram.command;
+package info.openrpg.telegram.commands;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

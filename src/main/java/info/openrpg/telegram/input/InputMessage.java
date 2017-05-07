@@ -1,7 +1,7 @@
 package info.openrpg.telegram.input;
 
-import info.openrpg.telegram.command.CommandChooser;
-import info.openrpg.telegram.command.TelegramCommand;
+import info.openrpg.telegram.commands.CommandChooser;
+import info.openrpg.telegram.commands.TelegramCommand;
 import lombok.Getter;
 import org.telegram.telegrambots.api.objects.User;
 

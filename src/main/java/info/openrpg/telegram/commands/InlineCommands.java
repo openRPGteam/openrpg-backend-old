@@ -1,5 +1,6 @@
-package info.openrpg.telegram.command;
+package info.openrpg.telegram.commands;
 
+import info.openrpg.constants.Commands;
 import info.openrpg.db.player.Player;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -12,10 +13,11 @@ public class InlineCommands {
 
     public static InlineKeyboardMarkup helpInlineCommands() {
         List<List<InlineKeyboardButton>> keys = new ArrayList<>();
-        keys.add(createInlineKeyboardButtonRow("Начать игру", "/start"));
-        keys.add(createInlineKeyboardButtonRow("Помощь", "/help"));
-        keys.add(createInlineKeyboardButtonRow("Просмотреть информацию", "/player_info"));
-        keys.add(createInlineKeyboardButtonRow("Тыркнуть палкой", "/peek_player"));
+        keys.add(createInlineKeyboardButtonRow("Начать игру", Commands.START));
+        keys.add(createInlineKeyboardButtonRow("Помощь", Commands.HELP));
+        keys.add(createInlineKeyboardButtonRow("Информация об игроке", Commands.PLAYER_INFO));
+        keys.add(createInlineKeyboardButtonRow("Тыркнуть палкой", Commands.PEEK_PLAYER));
+        keys.add(createInlineKeyboardButtonRow("Отправить сообщение", Commands.SEND_MESSAGE));
         return new InlineKeyboardMarkup().setKeyboard(keys);
     }
 

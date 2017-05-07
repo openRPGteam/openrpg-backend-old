@@ -1,6 +1,6 @@
-package info.openrpg.telegram.command;
+package info.openrpg.telegram.commands;
 
-import info.openrpg.telegram.command.action.*;
+import info.openrpg.telegram.commands.actions.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -1,9 +1,9 @@
-package info.openrpg.telegram.command.action;
+package info.openrpg.telegram.commands.actions;
 
 import com.google.common.base.Joiner;
 import info.openrpg.db.player.Player;
-import info.openrpg.telegram.command.InlineCommands;
-import info.openrpg.telegram.command.MessagesEnum;
+import info.openrpg.telegram.commands.InlineCommands;
+import info.openrpg.telegram.commands.MessagesEnum;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-import static info.openrpg.telegram.command.action.HelpCommand.HELP_MESSAGE;
 
 public class PlayerInfoCommand implements ExecutableCommand {
 

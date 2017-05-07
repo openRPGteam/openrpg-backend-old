@@ -2,10 +2,10 @@ package info.openrpg.telegram;
 
 import info.openrpg.db.player.Chat;
 import info.openrpg.db.player.Player;
-import info.openrpg.telegram.command.CommandChooser;
-import info.openrpg.telegram.command.InlineCommands;
-import info.openrpg.telegram.command.TelegramCommand;
-import info.openrpg.telegram.command.action.ExecutableCommand;
+import info.openrpg.telegram.commands.CommandChooser;
+import info.openrpg.telegram.commands.InlineCommands;
+import info.openrpg.telegram.commands.TelegramCommand;
+import info.openrpg.telegram.commands.actions.ExecutableCommand;
 import info.openrpg.telegram.input.InputMessage;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
