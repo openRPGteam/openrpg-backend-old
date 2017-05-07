@@ -3,12 +3,13 @@ package info.openrpg.telegram;
 import info.openrpg.db.player.Chat;
 import info.openrpg.db.player.Player;
 import info.openrpg.telegram.command.CommandChooser;
+import info.openrpg.telegram.command.InlineCommands;
 import info.openrpg.telegram.command.TelegramCommand;
 import info.openrpg.telegram.command.action.ExecutableCommand;
-import info.openrpg.telegram.command.InlineCommands;
 import info.openrpg.telegram.input.InputMessage;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -74,16 +75,24 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                         message.getText(),
                         message.getChatId(),
                         message.getFrom(),
-                        commandChooser))
+                        commandChooser,
+                        false)
+                )
                 .map(Optional::of)
                 .orElseGet(() ->
                         Optional.of(update)
                                 .map(Update::getCallbackQuery)
-                                .map(callbackQuery -> new InputMessage(
-                                        callbackQuery.getData(),
-                                        Long.valueOf(callbackQuery.getFrom().getId()),
-                                        callbackQuery.getFrom(),
-                                        commandChooser)
+                                .map(callbackQuery -> {
+                                    answerCallbackText(callbackQuery.getId());
+                                    return callbackQuery;
+                                })
+                                .map(callbackQuery ->
+                                        new InputMessage(
+                                                callbackQuery.getData(),
+                                                Long.valueOf(callbackQuery.getFrom().getId()),
+                                                callbackQuery.getFrom(),
+                                                commandChooser,
+                                                true)
                                 )
                 );
     }
@@ -91,6 +100,14 @@ public class OpenRpgBot extends TelegramLongPollingBot {
     private void sendText(SendMessage sendMessage) {
         try {
             sendMessage(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void answerCallbackText(String callbackQueryId) {
+        try {
+            answerCallbackQuery(new AnswerCallbackQuery().setCallbackQueryId(callbackQueryId).setShowAlert(false));
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

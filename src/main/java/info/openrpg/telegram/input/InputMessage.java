@@ -15,8 +15,10 @@ public class InputMessage {
     private final User from;
     private final TelegramCommand command;
     private final String[] arguments;
+    private final boolean isCallback;
 
-    public InputMessage(String inputString, Long chatId, User from, CommandChooser commandChooser) {
+    public InputMessage(String inputString, Long chatId, User from, CommandChooser commandChooser, boolean isCallback) {
+        this.isCallback = isCallback;
         this.chatId = chatId;
         this.from = from;
         this.text = inputString;

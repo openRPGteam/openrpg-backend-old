@@ -49,11 +49,11 @@ public class SendMessageCommand implements ExecutableCommand {
                                 )
                         )
                 )
-                .orElse(Collections.singletonList(
-                        new SendMessage()
-                                .setChatId(inputMessage.getChatId())
-                                .setText(WRONG_FORMAT_MESSAGE)
-                        )
+                    .orElse(Collections.singletonList(
+                            new SendMessage()
+                                    .setChatId(inputMessage.getChatId())
+                                    .setText(WRONG_FORMAT_MESSAGE)
+                            )
                 );
     }
 
