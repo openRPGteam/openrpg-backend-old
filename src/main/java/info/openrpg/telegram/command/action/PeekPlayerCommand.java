@@ -2,9 +2,9 @@ package info.openrpg.telegram.command.action;
 
 import com.google.common.base.Joiner;
 import info.openrpg.db.player.Player;
-import info.openrpg.telegram.UserInput;
+import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.User;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;
@@ -20,26 +20,26 @@ public class PeekPlayerCommand implements ExecutableCommand {
             "/peek_player DarkCasual";
 
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
-        return Optional.of(userInput)
-                .filter(ui -> ui.hasArguments(1))
-                .map(ui -> ui.getArgument(1))
-                .map(userName -> getPlayerByUsername(entityManager, update, userName))
+    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+        return Optional.of(inputMessage)
+                .filter(iM -> iM.hasArguments(1))
+                .map(iM -> iM.getArgument(1))
+                .map(userName -> getPlayerByUsername(entityManager, inputMessage.getFrom(), userName, inputMessage.getChatId()))
                 .map(Collections::singletonList)
                 .orElse(Collections.singletonList(
                         new SendMessage()
-                                .setChatId(update.getMessage().getChatId())
+                                .setChatId(inputMessage.getChatId())
                                 .setText(WRONG_ARGUMENTS_NUMBER_MESSAGE)
                         )
                 );
     }
 
     @Override
-    public List<SendMessage> handleCrash(RuntimeException e, Update update) {
+    public List<SendMessage> handleCrash(RuntimeException e, InputMessage inputMessage) {
         return Collections.emptyList();
     }
 
-    private SendMessage getPlayerByUsername(EntityManager entityManager, Update update, String userName) {
+    private SendMessage getPlayerByUsername(EntityManager entityManager, User from, String userName, Long chatId) {
         return entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
                 .setParameter("userName", userName)
                 .getResultList()
@@ -47,10 +47,10 @@ public class PeekPlayerCommand implements ExecutableCommand {
                 .findFirst()
                 .map(player -> new SendMessage()
                         .setChatId(String.valueOf(player.getId()))
-                        .setText(JOINER.join(PLAYER_PEEKED_MESSAGE, "@".concat(update.getMessage().getFrom().getUserName())))
+                        .setText(JOINER.join(PLAYER_PEEKED_MESSAGE, "@".concat(from.getUserName())))
                 )
                 .orElse(new SendMessage()
-                        .setChatId(update.getMessage().getChatId())
+                        .setChatId(chatId)
                         .setText(UNKNOWN_PLAYER_MESSAGE)
                 );
     }

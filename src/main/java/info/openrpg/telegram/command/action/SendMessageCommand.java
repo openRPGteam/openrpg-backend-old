@@ -2,9 +2,8 @@ package info.openrpg.telegram.command.action;
 
 import com.google.common.base.Joiner;
 import info.openrpg.db.player.Player;
-import info.openrpg.telegram.UserInput;
+import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Update;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;
@@ -23,11 +22,11 @@ public class SendMessageCommand implements ExecutableCommand {
             "/send_message DarkCasual Привет";
 
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, Update update, UserInput userInput) {
-        return Optional.of(userInput)
-                .filter(ui -> ui.hasArguments(2))
-                .map(ui -> entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
-                        .setParameter("userName", userInput.getArgument(1))
+    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+        return Optional.of(inputMessage)
+                .filter(iM -> iM.hasArguments(2))
+                .map(iM -> entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
+                        .setParameter("userName", iM.getArgument(1))
                         .getResultList()
                         .stream()
                         .findFirst()
@@ -35,31 +34,31 @@ public class SendMessageCommand implements ExecutableCommand {
                                 .setChatId(new Long(player.getId()))
                                 .setText(JOINER.join(
                                         PLAYER_PEEKED_MESSAGE,
-                                        "@".concat(update.getMessage().getFrom().getUserName()).concat(":"),
+                                        "@".concat(inputMessage.getFrom().getUserName()).concat(":"),
                                         JOINER.join(
-                                                IntStream.rangeClosed(2, ui.size())
-                                                        .mapToObj(ui::getArgument)
+                                                IntStream.rangeClosed(2, iM.size())
+                                                        .mapToObj(iM::getArgument)
                                                         .collect(Collectors.toList()))
                                         )
                                 )
                         )
                         .map(Collections::singletonList)
                         .orElse(Collections.singletonList(new SendMessage()
-                                        .setChatId(update.getMessage().getChatId())
+                                        .setChatId(inputMessage.getChatId())
                                         .setText(UNKNOWN_PLAYER_MESSAGE)
                                 )
                         )
                 )
                 .orElse(Collections.singletonList(
                         new SendMessage()
-                                .setChatId(update.getMessage().getChatId())
+                                .setChatId(inputMessage.getChatId())
                                 .setText(WRONG_FORMAT_MESSAGE)
                         )
                 );
     }
 
     @Override
-    public List<SendMessage> handleCrash(RuntimeException e, Update update) {
+    public List<SendMessage> handleCrash(RuntimeException e, InputMessage inputMessage) {
         return Collections.emptyList();
     }
 }
