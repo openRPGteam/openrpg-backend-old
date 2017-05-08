@@ -1,7 +1,10 @@
 package info.openrpg.telegram.commands.actions;
 
 import com.google.common.base.Joiner;
+import info.openrpg.constants.Commands;
+import info.openrpg.database.models.Player;
 import info.openrpg.database.repositories.PlayerRepository;
+import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.User;
@@ -31,12 +34,7 @@ public class PeekPlayerCommand implements ExecutableCommand {
                 .map(iM -> iM.getArgument(1))
                 .map(userName -> getPlayerByUsername(inputMessage.getFrom(), userName, inputMessage.getChatId()))
                 .map(Collections::singletonList)
-                .orElse(Collections.singletonList(
-                        new SendMessage()
-                                .setChatId(inputMessage.getChatId())
-                                .setText(WRONG_ARGUMENTS_NUMBER_MESSAGE)
-                        )
-                );
+                .orElseGet(() -> playersButtonList(0, inputMessage.getChatId()));
     }
 
     @Override
@@ -54,5 +52,15 @@ public class PeekPlayerCommand implements ExecutableCommand {
                         .setChatId(chatId)
                         .setText(UNKNOWN_PLAYER_MESSAGE)
                 );
+    }
+
+    private List<SendMessage> playersButtonList(int offset, long chatId) {
+        int playersNumber = playerRepository.selectPlayersNumber();
+        List<Player> players = playerRepository.selectPlayerWithOffset(offset, 10);
+        SendMessage sendMessage = new SendMessage()
+                .setText("Список игроков:")
+                .setReplyMarkup(InlineCommands.playerList(Commands.PEEK_PLAYER, players, offset, playersNumber))
+                .setChatId(chatId);
+        return Collections.singletonList(sendMessage);
     }
 }

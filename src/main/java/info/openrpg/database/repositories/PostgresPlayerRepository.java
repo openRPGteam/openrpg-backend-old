@@ -11,6 +11,7 @@ import java.util.Optional;
 public class PostgresPlayerRepository implements PlayerRepository{
     private final EntityManager entityManager;
 
+    @Override
     public Optional<Player> findPlayerByUsername(String username) {
         return entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
                 .setParameter("userName", username)
@@ -19,6 +20,7 @@ public class PostgresPlayerRepository implements PlayerRepository{
                 .findFirst();
     }
 
+    @Override
     public List<Player> selectPlayerWithOffset(int offset, int count) {
         return entityManager.createQuery("from Player p ", Player.class)
                 .setMaxResults(count)
@@ -26,6 +28,7 @@ public class PostgresPlayerRepository implements PlayerRepository{
                 .getResultList();
     }
 
+    @Override
     public int selectPlayersNumber() {
         return entityManager.createQuery("select count(*) from Player", Long.class)
                 .getFirstResult();

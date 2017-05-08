@@ -1,9 +1,9 @@
 package info.openrpg.telegram;
 
 import info.openrpg.database.models.Chat;
+import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
 import info.openrpg.telegram.commands.CommandChooser;
-import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.commands.TelegramCommand;
 import info.openrpg.telegram.commands.actions.ExecutableCommand;
 import info.openrpg.telegram.input.InputMessage;
@@ -28,18 +28,16 @@ public class OpenRpgBot extends TelegramLongPollingBot {
 
     private Credentials credentials;
     private SessionFactory sessionFactory;
-    private InlineCommands inlineCommands;
 
     public OpenRpgBot(Credentials credentials, Properties properties) {
         this.credentials = credentials;
         this.commandChooser = new CommandChooser();
         this.sessionFactory = new Configuration()
-                .addPackage("db.player")
                 .addProperties(properties)
+                .addAnnotatedClass(Message.class)
                 .addAnnotatedClass(Player.class)
                 .addAnnotatedClass(Chat.class)
                 .buildSessionFactory();
-        inlineCommands = new InlineCommands();
     }
 
     @Override
@@ -47,15 +45,9 @@ public class OpenRpgBot extends TelegramLongPollingBot {
         Optional.of(update)
                 .map(this::parseInputMessage)
                 .flatMap(inputMessage -> inputMessage)
+                .map(this::updateInputMessage)
                 .map(this::logInputMessage)
                 .ifPresent(this::parseCommand);
-    }
-
-    private InputMessage logInputMessage(InputMessage inputMessage) {
-        logger.info(inputMessage.getChatId().toString());
-        logger.info(inputMessage.getFrom().toString());
-        logger.info(inputMessage.getText());
-        return inputMessage;
     }
 
     @Override
@@ -68,32 +60,60 @@ public class OpenRpgBot extends TelegramLongPollingBot {
         return credentials.getToken();
     }
 
+    private InputMessage logInputMessage(InputMessage inputMessage) {
+        logger.info(inputMessage.getChatId().toString());
+        logger.info(inputMessage.getFrom().toString());
+        logger.info(inputMessage.getText());
+        return inputMessage;
+    }
+
     private Optional<InputMessage> parseInputMessage(Update update) {
         return Optional.of(update)
                 .map(Update::getMessage)
                 .map(message -> new InputMessage(
-                        message.getText(),
-                        message.getChatId(),
-                        message.getFrom(),
-                        commandChooser,
-                        false)
+                                message.getText(),
+                                message.getChatId(),
+                                message.getFrom(),
+                                commandChooser
+                        )
                 )
                 .map(Optional::of)
-                .orElseGet(() ->
-                        Optional.of(update)
-                                .map(Update::getCallbackQuery)
-                                .map(callbackQuery -> {
-                                    answerCallbackText(callbackQuery.getId());
-                                    return callbackQuery;
-                                })
-                                .map(callbackQuery ->
-                                        new InputMessage(
-                                                callbackQuery.getData(),
-                                                Long.valueOf(callbackQuery.getFrom().getId()),
-                                                callbackQuery.getFrom(),
-                                                commandChooser,
-                                                true)
-                                )
+                .orElseGet(() -> parseCallback(update));
+    }
+
+    private InputMessage updateInputMessage(InputMessage inputMessage) {
+        EntityManager entityManager = sessionFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+        Optional<Message> messageQueue = entityManager.createQuery("from Message where player_id = :playerId", Message.class)
+                .setParameter("playerId", inputMessage.getChatId())
+                .getResultList()
+                .stream()
+                .findFirst();
+
+        return messageQueue.map(message -> {
+                    entityManager.remove(message);
+                    entityManager.getTransaction().commit();
+                    entityManager.close();
+                    return message;
+                })
+                .map(message -> new InputMessage(inputMessage, message.getMessage(), commandChooser))
+                .orElse(inputMessage);
+    }
+
+    private Optional<InputMessage> parseCallback(Update update) {
+        return Optional.of(update)
+                .map(Update::getCallbackQuery)
+                .map(callbackQuery -> {
+                    answerCallbackText(callbackQuery.getId());
+                    return callbackQuery;
+                })
+                .map(callbackQuery ->
+                        new InputMessage(
+                                callbackQuery.getData(),
+                                Long.valueOf(callbackQuery.getFrom().getId()),
+                                callbackQuery.getFrom(),
+                                commandChooser
+                        )
                 );
     }
 
@@ -117,9 +137,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
         Optional.of(inputMessage)
                 .map(InputMessage::getCommand)
                 .filter(command -> command != TelegramCommand.NOTHING)
-                .ifPresent(telegramCommand -> {
-                    executeCommand(telegramCommand, inputMessage);
-                });
+                .ifPresent(telegramCommand -> executeCommand(telegramCommand, inputMessage));
     }
 
     private void executeCommand(TelegramCommand telegramCommand, InputMessage inputMessage) {

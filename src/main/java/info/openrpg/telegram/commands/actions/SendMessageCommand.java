@@ -2,7 +2,9 @@ package info.openrpg.telegram.commands.actions;
 
 import com.google.common.base.Joiner;
 import info.openrpg.constants.Commands;
+import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
+import info.openrpg.database.repositories.MessageRepository;
 import info.openrpg.database.repositories.PlayerRepository;
 import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.input.InputMessage;
@@ -19,14 +21,13 @@ public class SendMessageCommand implements ExecutableCommand {
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
     private static final String UNKNOWN_PLAYER_MESSAGE = "Ты попытался потыкать палкой несуществующего пидора.";
     private static final String PLAYER_PEEKED_MESSAGE = "Тебе передал сообщение";
-    private static final String WRONG_FORMAT_MESSAGE = "Неправильный формат команды\n" +
-            "Пример:\n" +
-            "/send_message DarkCasual Привет";
 
     private final PlayerRepository playerRepository;
+    private final MessageRepository messageRepository;
 
-    public SendMessageCommand(PlayerRepository playerRepository) {
+    public SendMessageCommand(PlayerRepository playerRepository, MessageRepository messageRepository) {
         this.playerRepository = playerRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -70,6 +71,13 @@ public class SendMessageCommand implements ExecutableCommand {
     }
 
     private List<SendMessage> typeSendMessage(InputMessage inputMessage) {
+        Player player = playerRepository.findPlayerByUsername(inputMessage.getFrom().getUserName())
+                .orElseThrow(() -> new RuntimeException("WTF"));
+        Message message = Message.builder()
+                .player(player)
+                .message(inputMessage.getText())
+                .build();
+        messageRepository.saveMessage(message);
         return Collections.singletonList(new SendMessage()
                 .setText("Напишите текст, который вы хотите отправить:")
                 .setChatId(inputMessage.getChatId()));
