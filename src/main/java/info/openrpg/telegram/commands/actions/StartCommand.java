@@ -1,13 +1,12 @@
 package info.openrpg.telegram.commands.actions;
 
-import info.openrpg.db.player.Chat;
-import info.openrpg.db.player.Player;
+import info.openrpg.database.models.Player;
+import info.openrpg.database.repositories.PlayerRepository;
 import info.openrpg.telegram.input.InputMessage;
 import org.hibernate.exception.ConstraintViolationException;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.User;
 
-import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import java.util.Collections;
 import java.util.List;
@@ -17,8 +16,14 @@ public class StartCommand implements ExecutableCommand {
     private static final String ALREADY_REGISTERED_MESSAGE = "Ты уже зарегистрирован";
     private static final String FIRST_MESSAGE = "Спасибо за регистрацию";
 
+    private final PlayerRepository playerRepository;
+
+    public StartCommand(PlayerRepository playerRepository) {
+        this.playerRepository = playerRepository;
+    }
+
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+    public List<SendMessage> execute(InputMessage inputMessage) {
         User user = inputMessage.getFrom();
         Player player = Player.builder()
                 .id(user.getId())
@@ -26,13 +31,8 @@ public class StartCommand implements ExecutableCommand {
                 .lastName(user.getLastName())
                 .userName(user.getUserName())
                 .build();
-        Chat chat = Chat.builder()
-                .id(inputMessage.getChatId())
-                .player(player)
-                .build();
 
-        entityManager.persist(player);
-        entityManager.persist(chat);
+        playerRepository.savePlayer(player);
 
         return Collections.singletonList(
                 new SendMessage()

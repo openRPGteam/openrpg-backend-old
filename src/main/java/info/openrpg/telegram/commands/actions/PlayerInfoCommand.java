@@ -1,13 +1,14 @@
 package info.openrpg.telegram.commands.actions;
 
 import com.google.common.base.Joiner;
-import info.openrpg.db.player.Player;
+import info.openrpg.constants.Commands;
+import info.openrpg.database.models.Player;
+import info.openrpg.database.repositories.PlayerRepository;
 import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.commands.MessagesEnum;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,13 +20,19 @@ public class PlayerInfoCommand implements ExecutableCommand {
     private static final String PLAYER_NAME_HEADER_MESSAGE = "Пидора зовут: ";
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
 
+    private final PlayerRepository playerRepository;
+
+    public PlayerInfoCommand(PlayerRepository playerRepository) {
+        this.playerRepository = playerRepository;
+    }
+
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+    public List<SendMessage> execute(InputMessage inputMessage) {
         return Optional.of(inputMessage)
                 .filter(iM -> iM.hasArguments(1))
                 .map(iM -> iM.getArgument(1))
-                .map(userName -> getPlayerInfo(entityManager, userName, inputMessage.getChatId()))
-                .orElseGet(() -> createPlayerButton(entityManager, 0, inputMessage.getChatId()));
+                .map(userName -> getPlayerInfo(userName, inputMessage.getChatId()))
+                .orElseGet(() -> playersButtonList(0, inputMessage.getChatId()));
     }
 
     @Override
@@ -33,12 +40,8 @@ public class PlayerInfoCommand implements ExecutableCommand {
         return Collections.emptyList();
     }
 
-    private List<SendMessage> getPlayerInfo(EntityManager entityManager, String userName, Long chatId) {
-        return entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
-                .setParameter("userName", userName)
-                .getResultList()
-                .stream()
-                .findFirst()
+    private List<SendMessage> getPlayerInfo(String userName, Long chatId) {
+        return playerRepository.findPlayerByUsername(userName)
                 .map(player ->
                         new SendMessage()
                                 .setChatId(chatId)
@@ -53,23 +56,12 @@ public class PlayerInfoCommand implements ExecutableCommand {
                 .orElse(Collections.singletonList(new SendMessage().setChatId(chatId).setText(NOT_FOUNT_PLAYER_MESSAGE)));
     }
 
-    private List<Player> getPlayers(EntityManager entityManager, int offset) {
-        return entityManager.createQuery("from Player p ", Player.class)
-                .setMaxResults(10)
-                .setFirstResult(offset)
-                .getResultList();
-    }
-
-    private Integer getPlayersNumber(EntityManager entityManager) {
-        return entityManager.createQuery("select count(*) from Player", Long.class)
-                .getFirstResult();
-    }
-
-    private List<SendMessage> createPlayerButton(EntityManager entityManager, int offset, long chatId) {
-        int playersNumber = getPlayersNumber(entityManager);
+    private List<SendMessage> playersButtonList(int offset, long chatId) {
+        int playersNumber = playerRepository.selectPlayersNumber();
+        List<Player> players = playerRepository.selectPlayerWithOffset(offset, 10);
         SendMessage sendMessage = new SendMessage()
                 .setText("Список игроков:")
-                .setReplyMarkup(InlineCommands.playerInfoInlineCommands(getPlayers(entityManager, offset), offset, playersNumber))
+                .setReplyMarkup(InlineCommands.playerList(Commands.PLAYER_INFO, players, offset, playersNumber))
                 .setChatId(chatId);
         return Collections.singletonList(sendMessage);
     }

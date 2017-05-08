@@ -1,12 +1,11 @@
 package info.openrpg.telegram.commands.actions;
 
 import com.google.common.base.Joiner;
-import info.openrpg.db.player.Player;
+import info.openrpg.database.repositories.PlayerRepository;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.User;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -19,12 +18,18 @@ public class PeekPlayerCommand implements ExecutableCommand {
             "Пример:\n" +
             "/peek_player DarkCasual";
 
+    private final PlayerRepository playerRepository;
+
+    public PeekPlayerCommand(PlayerRepository playerRepository) {
+        this.playerRepository = playerRepository;
+    }
+
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+    public List<SendMessage> execute(InputMessage inputMessage) {
         return Optional.of(inputMessage)
                 .filter(iM -> iM.hasArguments(1))
                 .map(iM -> iM.getArgument(1))
-                .map(userName -> getPlayerByUsername(entityManager, inputMessage.getFrom(), userName, inputMessage.getChatId()))
+                .map(userName -> getPlayerByUsername(inputMessage.getFrom(), userName, inputMessage.getChatId()))
                 .map(Collections::singletonList)
                 .orElse(Collections.singletonList(
                         new SendMessage()
@@ -39,12 +44,8 @@ public class PeekPlayerCommand implements ExecutableCommand {
         return Collections.emptyList();
     }
 
-    private SendMessage getPlayerByUsername(EntityManager entityManager, User from, String userName, Long chatId) {
-        return entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
-                .setParameter("userName", userName)
-                .getResultList()
-                .stream()
-                .findFirst()
+    private SendMessage getPlayerByUsername(User from, String userName, Long chatId) {
+        return playerRepository.findPlayerByUsername(userName)
                 .map(player -> new SendMessage()
                         .setChatId(String.valueOf(player.getId()))
                         .setText(JOINER.join(PLAYER_PEEKED_MESSAGE, "@".concat(from.getUserName())))

@@ -1,18 +1,25 @@
 package info.openrpg.telegram.commands;
 
+import info.openrpg.database.repositories.PostgresPlayerRepository;
 import info.openrpg.telegram.commands.actions.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
+import javax.persistence.EntityManager;
+import java.util.function.Function;
+
 @AllArgsConstructor
 public enum TelegramCommand {
-    NOTHING(new DoNothingComand()),
-    START(new StartCommand()),
-    HELP(new HelpCommand()),
-    PLAYER_INFO(new PlayerInfoCommand()),
-    PEEK_PLAYER(new PeekPlayerCommand()),
-    SEND_MESSAGE(new SendMessageCommand());
+    NOTHING(entityManager -> new DoNothingComand()),
+    START(entityManager -> new StartCommand(new PostgresPlayerRepository(entityManager))),
+    HELP(entityManager -> new HelpCommand()),
+    PLAYER_INFO(entityManager -> new PlayerInfoCommand(new PostgresPlayerRepository(entityManager))),
+    PEEK_PLAYER(entityManager -> new PeekPlayerCommand(new PostgresPlayerRepository(entityManager))),
+    SEND_MESSAGE(entityManager -> new SendMessageCommand(new PostgresPlayerRepository(entityManager)));
 
-    private ExecutableCommand executableCommand;
+    private Function<EntityManager, ExecutableCommand> executableCommand;
+
+    public ExecutableCommand getExecutableCommand(EntityManager entityManager) {
+        return executableCommand.apply(entityManager);
+    }
 }

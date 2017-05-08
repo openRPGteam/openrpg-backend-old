@@ -1,4 +1,4 @@
-package info.openrpg.db.player;
+package info.openrpg.database.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

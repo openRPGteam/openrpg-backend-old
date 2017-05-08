@@ -3,14 +3,13 @@ package info.openrpg.telegram.commands.actions;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 
 public class DoNothingComand implements ExecutableCommand {
 
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+    public List<SendMessage> execute(InputMessage inputMessage) {
         return Collections.emptyList();
     }
 

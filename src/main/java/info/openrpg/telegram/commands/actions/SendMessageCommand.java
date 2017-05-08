@@ -1,11 +1,13 @@
 package info.openrpg.telegram.commands.actions;
 
 import com.google.common.base.Joiner;
-import info.openrpg.db.player.Player;
+import info.openrpg.constants.Commands;
+import info.openrpg.database.models.Player;
+import info.openrpg.database.repositories.PlayerRepository;
+import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -21,23 +23,26 @@ public class SendMessageCommand implements ExecutableCommand {
             "Пример:\n" +
             "/send_message DarkCasual Привет";
 
+    private final PlayerRepository playerRepository;
+
+    public SendMessageCommand(PlayerRepository playerRepository) {
+        this.playerRepository = playerRepository;
+    }
+
     @Override
-    public List<SendMessage> execute(EntityManager entityManager, InputMessage inputMessage) {
+    public List<SendMessage> execute(InputMessage inputMessage) {
         return Optional.of(inputMessage)
                 .filter(iM -> iM.hasArguments(2))
-                .map(iM -> entityManager.createQuery("from Player p where p.userName = :userName", Player.class)
-                        .setParameter("userName", iM.getArgument(1))
-                        .getResultList()
-                        .stream()
-                        .findFirst()
+                .map(iM -> iM.getArgument(1))
+                .map(username -> playerRepository.findPlayerByUsername(username)
                         .map(player -> new SendMessage()
                                 .setChatId(new Long(player.getId()))
                                 .setText(JOINER.join(
                                         PLAYER_PEEKED_MESSAGE,
                                         "@".concat(inputMessage.getFrom().getUserName()).concat(":"),
                                         JOINER.join(
-                                                IntStream.rangeClosed(2, iM.size())
-                                                        .mapToObj(iM::getArgument)
+                                                IntStream.rangeClosed(2, inputMessage.size())
+                                                        .mapToObj(inputMessage::getArgument)
                                                         .collect(Collectors.toList()))
                                         )
                                 )
@@ -49,16 +54,34 @@ public class SendMessageCommand implements ExecutableCommand {
                                 )
                         )
                 )
-                    .orElse(Collections.singletonList(
-                            new SendMessage()
-                                    .setChatId(inputMessage.getChatId())
-                                    .setText(WRONG_FORMAT_MESSAGE)
-                            )
-                );
+                .orElseGet(() -> parseArguments(inputMessage));
     }
 
     @Override
     public List<SendMessage> handleCrash(RuntimeException e, InputMessage inputMessage) {
         return Collections.emptyList();
+    }
+
+    private List<SendMessage> parseArguments(InputMessage inputMessage) {
+        return Optional.of(inputMessage)
+                .filter(iM -> iM.hasArguments(1))
+                .map(this::typeSendMessage)
+                .orElseGet(() -> playersButtonList(0, inputMessage.getChatId()));
+    }
+
+    private List<SendMessage> typeSendMessage(InputMessage inputMessage) {
+        return Collections.singletonList(new SendMessage()
+                .setText("Напишите текст, который вы хотите отправить:")
+                .setChatId(inputMessage.getChatId()));
+    }
+
+    private List<SendMessage> playersButtonList(int offset, long chatId) {
+        int playersNumber = playerRepository.selectPlayersNumber();
+        List<Player> players = playerRepository.selectPlayerWithOffset(offset, 10);
+        SendMessage sendMessage = new SendMessage()
+                .setText("Выберите игрока, которому вы хотите отправить сообщение:")
+                .setReplyMarkup(InlineCommands.playerList(Commands.SEND_MESSAGE, players, offset, playersNumber))
+                .setChatId(chatId);
+        return Collections.singletonList(sendMessage);
     }
 }
