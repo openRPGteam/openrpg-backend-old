@@ -4,7 +4,7 @@ import info.openrpg.database.models.Chat;
 import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
 import info.openrpg.telegram.commands.TelegramCommand;
-import info.openrpg.telegram.commands.actions.ExecutableCommand;
+import info.openrpg.telegram.commands.actions.CommandExecutorDispatcher;
 import info.openrpg.telegram.input.InputMessage;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -87,11 +87,11 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                 .findFirst();
 
         return messageQueue.map(message -> {
-                    entityManager.remove(message);
-                    entityManager.getTransaction().commit();
-                    entityManager.close();
-                    return message;
-                })
+            entityManager.remove(message);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            return message;
+        })
                 .map(message -> new InputMessage(inputMessage, message.getMessage()))
                 .orElse(inputMessage);
     }
@@ -130,21 +130,20 @@ public class OpenRpgBot extends TelegramLongPollingBot {
 
     private void parseCommand(InputMessage inputMessage) {
         Optional.of(inputMessage)
-                .map(InputMessage::getCommand)
-                .filter(command -> command != TelegramCommand.NOTHING)
-                .ifPresent(telegramCommand -> executeCommand(telegramCommand, inputMessage));
+                .filter(message -> message.getCommand() != TelegramCommand.NOTHING)
+                .ifPresent(message -> executeCommand(inputMessage));
     }
 
-    private void executeCommand(TelegramCommand telegramCommand, InputMessage inputMessage) {
+    private void executeCommand(InputMessage inputMessage) {
         EntityManager entityManager = sessionFactory.createEntityManager();
         entityManager.getTransaction().begin();
-        ExecutableCommand command = telegramCommand.getExecutableCommand(entityManager);
+        CommandExecutorDispatcher dispatcher = new CommandExecutorDispatcher(entityManager);
         try {
-            List<SendMessage> sendMessageList = command.execute(inputMessage);
+            List<SendMessage> sendMessageList = dispatcher.execute(inputMessage);
             entityManager.getTransaction().commit();
             sendMessageList.forEach(this::sendText);
         } catch (RuntimeException e) {
-            handleCrash(e, entityManager, command, inputMessage);
+            handleCrash(e, entityManager, dispatcher, inputMessage);
         }
         entityManager.close();
     }
@@ -152,11 +151,11 @@ public class OpenRpgBot extends TelegramLongPollingBot {
     private void handleCrash(
             RuntimeException e,
             EntityManager entityManager,
-            ExecutableCommand executableCommand,
+            CommandExecutorDispatcher dispatcher,
             InputMessage inputMessage
     ) {
         entityManager.getTransaction().rollback();
-        Optional.of(executableCommand.handleCrash(e, inputMessage))
+        Optional.of(dispatcher.handleCrash(e, inputMessage))
                 .filter(sendMessages -> !sendMessages.isEmpty())
                 .orElseGet(() -> {
                     logger.warning(e.getClass().getName());

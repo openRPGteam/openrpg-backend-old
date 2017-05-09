@@ -1,21 +1,23 @@
 package info.openrpg.telegram.commands.actions;
 
+import info.openrpg.telegram.commands.TelegramCommand;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 
-public class DoNothingCommand extends ExecutableCommand {
+public class DoNothingCommand implements CommandExecutor {
 
-    public DoNothingCommand(EntityManager entityManager) {
-        super(entityManager);
-    }
 
     @Override
     public List<SendMessage> execute(InputMessage inputMessage) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isCommandSupported(TelegramCommand command) {
+        return command == TelegramCommand.NOTHING;
     }
 
     @Override
