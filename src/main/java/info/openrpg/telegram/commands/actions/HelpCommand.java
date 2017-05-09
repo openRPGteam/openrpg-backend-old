@@ -4,10 +4,15 @@ import info.openrpg.telegram.commands.MessagesEnum;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
+import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 
-public class HelpCommand implements ExecutableCommand {
+public class HelpCommand extends ExecutableCommand {
+
+    public HelpCommand(EntityManager entityManager) {
+        super(entityManager);
+    }
 
     @Override
     public List<SendMessage> execute(InputMessage inputMessage) {

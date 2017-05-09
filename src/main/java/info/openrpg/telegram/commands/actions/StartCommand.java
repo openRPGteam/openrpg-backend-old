@@ -2,24 +2,27 @@ package info.openrpg.telegram.commands.actions;
 
 import info.openrpg.database.models.Player;
 import info.openrpg.database.repositories.PlayerRepository;
+import info.openrpg.database.repositories.PostgresPlayerRepository;
 import info.openrpg.telegram.input.InputMessage;
 import org.hibernate.exception.ConstraintViolationException;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.User;
 
+import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import java.util.Collections;
 import java.util.List;
 
-public class StartCommand implements ExecutableCommand {
+public class StartCommand extends ExecutableCommand {
 
     private static final String ALREADY_REGISTERED_MESSAGE = "Ты уже зарегистрирован";
     private static final String FIRST_MESSAGE = "Спасибо за регистрацию";
 
     private final PlayerRepository playerRepository;
 
-    public StartCommand(PlayerRepository playerRepository) {
-        this.playerRepository = playerRepository;
+    public StartCommand(EntityManager entityManager) {
+        super(entityManager);
+        this.playerRepository = new PostgresPlayerRepository(entityManager);
     }
 
     @Override

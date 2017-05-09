@@ -6,17 +6,20 @@ import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
 import info.openrpg.database.repositories.MessageRepository;
 import info.openrpg.database.repositories.PlayerRepository;
+import info.openrpg.database.repositories.PostgresPlayerRepository;
+import info.openrpg.database.repositories.PostrgresMessageRepository;
 import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
+import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class SendMessageCommand implements ExecutableCommand {
+public class SendMessageCommand extends ExecutableCommand {
 
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
     private static final String UNKNOWN_PLAYER_MESSAGE = "Ты попытался потыкать палкой несуществующего пидора.";
@@ -25,9 +28,10 @@ public class SendMessageCommand implements ExecutableCommand {
     private final PlayerRepository playerRepository;
     private final MessageRepository messageRepository;
 
-    public SendMessageCommand(PlayerRepository playerRepository, MessageRepository messageRepository) {
-        this.playerRepository = playerRepository;
-        this.messageRepository = messageRepository;
+    public SendMessageCommand(EntityManager entityManager) {
+        super(entityManager);
+        this.playerRepository = new PostgresPlayerRepository(entityManager);
+        this.messageRepository = new PostrgresMessageRepository(entityManager);
     }
 
     @Override

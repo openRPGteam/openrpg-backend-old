@@ -1,45 +1,38 @@
 package info.openrpg.telegram.commands;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
 public class CommandChooserTest {
-    private CommandChooser commandChooser;
-
-    @BeforeMethod
-    public void setUp() throws Exception {
-        commandChooser = new CommandChooser();
-    }
 
     @Test
     public void testVoidCommand() throws Exception {
-        assertEquals(TelegramCommand.NOTHING, commandChooser.chooseCommand("/"));
+        assertEquals(TelegramCommand.NOTHING, TelegramCommand.forCommand("/"));
     }
 
     @Test
     public void testVoidCommandWithoutSLash() throws Exception {
-        assertEquals(TelegramCommand.NOTHING, commandChooser.chooseCommand(""));
+        assertEquals(TelegramCommand.NOTHING, TelegramCommand.forCommand(""));
     }
 
     @Test
     public void testHelp() throws Exception {
-        assertEquals(TelegramCommand.HELP, commandChooser.chooseCommand("/help"));
+        assertEquals(TelegramCommand.HELP, TelegramCommand.forCommand("/help"));
     }
 
     @Test
     public void testPlayerInfo() throws Exception {
-        assertEquals(TelegramCommand.PLAYER_INFO, commandChooser.chooseCommand("/player_info 123123"));
+        assertEquals(TelegramCommand.NOTHING, TelegramCommand.forCommand("/player_info 123123"));
     }
 
     @Test
     public void testPlayerInfoWithoutArg() throws Exception {
-        assertEquals(TelegramCommand.PLAYER_INFO, commandChooser.chooseCommand("/player_info"));
+        assertEquals(TelegramCommand.PLAYER_INFO, TelegramCommand.forCommand("/player_info"));
     }
 
     @Test
     public void testStart() throws Exception {
-        assertEquals(TelegramCommand.START, commandChooser.chooseCommand("/start"));
+        assertEquals(TelegramCommand.START, TelegramCommand.forCommand("/start"));
     }
 }

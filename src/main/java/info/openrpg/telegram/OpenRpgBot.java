@@ -3,7 +3,6 @@ package info.openrpg.telegram;
 import info.openrpg.database.models.Chat;
 import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
-import info.openrpg.telegram.commands.CommandChooser;
 import info.openrpg.telegram.commands.TelegramCommand;
 import info.openrpg.telegram.commands.actions.ExecutableCommand;
 import info.openrpg.telegram.input.InputMessage;
@@ -24,14 +23,12 @@ import java.util.logging.Logger;
 
 public class OpenRpgBot extends TelegramLongPollingBot {
     private static final Logger logger = Logger.getLogger("bot");
-    private final CommandChooser commandChooser;
 
     private Credentials credentials;
     private SessionFactory sessionFactory;
 
     public OpenRpgBot(Credentials credentials, Properties properties) {
         this.credentials = credentials;
-        this.commandChooser = new CommandChooser();
         this.sessionFactory = new Configuration()
                 .addProperties(properties)
                 .addAnnotatedClass(Message.class)
@@ -73,8 +70,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                 .map(message -> new InputMessage(
                                 message.getText(),
                                 message.getChatId(),
-                                message.getFrom(),
-                                commandChooser
+                                message.getFrom()
                         )
                 )
                 .map(Optional::of)
@@ -96,7 +92,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                     entityManager.close();
                     return message;
                 })
-                .map(message -> new InputMessage(inputMessage, message.getMessage(), commandChooser))
+                .map(message -> new InputMessage(inputMessage, message.getMessage()))
                 .orElse(inputMessage);
     }
 
@@ -111,8 +107,7 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                         new InputMessage(
                                 callbackQuery.getData(),
                                 Long.valueOf(callbackQuery.getFrom().getId()),
-                                callbackQuery.getFrom(),
-                                commandChooser
+                                callbackQuery.getFrom()
                         )
                 );
     }

@@ -4,17 +4,19 @@ import com.google.common.base.Joiner;
 import info.openrpg.constants.Commands;
 import info.openrpg.database.models.Player;
 import info.openrpg.database.repositories.PlayerRepository;
+import info.openrpg.database.repositories.PostgresPlayerRepository;
 import info.openrpg.telegram.commands.InlineCommands;
 import info.openrpg.telegram.commands.MessagesEnum;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class PlayerInfoCommand implements ExecutableCommand {
+public class PlayerInfoCommand extends ExecutableCommand {
 
     private static final String NOT_FOUNT_PLAYER_MESSAGE = "Такого пидора пока нет";
     private static final String PLAYER_NAME_HEADER_MESSAGE = "Пидора зовут: ";
@@ -22,8 +24,9 @@ public class PlayerInfoCommand implements ExecutableCommand {
 
     private final PlayerRepository playerRepository;
 
-    public PlayerInfoCommand(PlayerRepository playerRepository) {
-        this.playerRepository = playerRepository;
+    public PlayerInfoCommand(EntityManager entityManager) {
+        super(entityManager);
+        this.playerRepository = new PostgresPlayerRepository(entityManager);
     }
 
     @Override
