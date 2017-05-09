@@ -10,6 +10,8 @@ import java.util.List;
 public class DoNothingCommand implements CommandExecutor {
 
 
+    public static final DoNothingCommand INSTANCE = new DoNothingCommand();
+
     @Override
     public List<SendMessage> execute(InputMessage inputMessage) {
         return Collections.emptyList();

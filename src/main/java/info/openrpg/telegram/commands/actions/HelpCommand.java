@@ -10,6 +10,7 @@ import java.util.List;
 
 public class HelpCommand implements CommandExecutor {
 
+    public final static HelpCommand INSTANCE = new HelpCommand();
     @Override
     public List<SendMessage> execute(InputMessage inputMessage) {
         return Collections.singletonList(MessagesEnum.HELP.sendTo(inputMessage.getChatId()));

@@ -24,8 +24,8 @@ public class CommandExecutorDispatcher {
     private void initExecutors(EntityManager entityManager) {
         PlayerRepository playerRepository = new PostgresPlayerRepository(entityManager);
         MessageRepository messageRepository = new PostrgresMessageRepository(entityManager);
-        commandExecutors.add(new DoNothingCommand());
-        commandExecutors.add(new HelpCommand());
+        commandExecutors.add(DoNothingCommand.INSTANCE);
+        commandExecutors.add(HelpCommand.INSTANCE);
         commandExecutors.add(new PeekPlayerCommand(playerRepository));
         commandExecutors.add(new PlayerInfoCommand(playerRepository));
         commandExecutors.add(new StartCommand(playerRepository));
