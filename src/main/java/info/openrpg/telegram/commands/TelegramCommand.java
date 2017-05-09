@@ -4,7 +4,6 @@ import info.openrpg.database.repositories.PostgresPlayerRepository;
 import info.openrpg.database.repositories.PostrgresMessageRepository;
 import info.openrpg.telegram.commands.actions.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import javax.persistence.EntityManager;
 import java.util.function.Function;
@@ -21,7 +20,9 @@ public enum TelegramCommand {
                     new PostgresPlayerRepository(entityManager),
                     new PostrgresMessageRepository(entityManager)
             )
-    );
+    ),
+    SPAWN(entityManager -> new SpawnCommand(new PostgresPlayerRepository(entityManager))),
+    MOVE(entityManager -> new MoveCommand(new PostgresPlayerRepository(entityManager)));
 
     private Function<EntityManager, ExecutableCommand> executableCommand;
 

@@ -55,15 +55,15 @@ public class InputMessage {
     }
 
     public boolean hasArguments() {
-        return arguments != null;
+        return arguments != null && arguments.length != 0;
     }
 
     public boolean hasArguments(int numberOfArguments) {
         return hasArguments() && arguments.length >= numberOfArguments;
     }
 
-    public String getArgument(int index) {
-        return arguments[index - 1];
+    public String getArgument(int number) {
+        return arguments[number - 1];
     }
 
     public int size() {

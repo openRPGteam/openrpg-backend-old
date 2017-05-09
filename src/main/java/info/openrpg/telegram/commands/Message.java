@@ -2,11 +2,11 @@ package info.openrpg.telegram.commands;
 
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
-public enum MessagesEnum {
-    HELP(new SendMessage().setText("Все возможные команды").setReplyMarkup(InlineCommands.helpInlineCommands()));
+public enum Message {
+    HELP(new SendMessage().setText("Все возможные команды").setReplyMarkup(InlineCommand.helpInlineCommands()));
     private final SendMessage sendMessage;
 
-    MessagesEnum(SendMessage sendMessage) {
+    Message(SendMessage sendMessage) {
         this.sendMessage = sendMessage;
     }
 

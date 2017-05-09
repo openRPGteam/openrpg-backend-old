@@ -16,6 +16,8 @@ public class CommandChooser {
         commandMap.put(Commands.START, TelegramCommand.START);
         commandMap.put(Commands.PEEK_PLAYER, TelegramCommand.PEEK_PLAYER);
         commandMap.put(Commands.SEND_MESSAGE, TelegramCommand.SEND_MESSAGE);
+        commandMap.put(Commands.SPAWN, TelegramCommand.SPAWN);
+        commandMap.put(Commands.MOVE, TelegramCommand.MOVE);
     }
 
     public TelegramCommand chooseCommand(String rawText) {

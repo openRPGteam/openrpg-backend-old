@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class InlineCommands {
+public class InlineCommand {
     private static final Joiner JOINER = Joiner.on(" ").skipNulls();
 
     public static InlineKeyboardMarkup helpInlineCommands() {

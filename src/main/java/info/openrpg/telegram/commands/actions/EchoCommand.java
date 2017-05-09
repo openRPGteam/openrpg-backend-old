@@ -6,8 +6,7 @@ import info.openrpg.telegram.input.InputMessage;
 import java.util.Collections;
 import java.util.List;
 
-public class DoNothingComand implements ExecutableCommand {
-
+public class EchoCommand implements ExecutableCommand {
     @Override
     public List<MessageWrapper> execute(InputMessage inputMessage) {
         return Collections.emptyList();

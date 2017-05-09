@@ -15,31 +15,26 @@ public class CommandChooserTest {
 
     @Test
     public void testVoidCommand() throws Exception {
-        assertEquals(TelegramCommand.NOTHING, commandChooser.chooseCommand("/"));
+        assertEquals(commandChooser.chooseCommand("/"), TelegramCommand.NOTHING);
     }
 
     @Test
     public void testVoidCommandWithoutSLash() throws Exception {
-        assertEquals(TelegramCommand.NOTHING, commandChooser.chooseCommand(""));
+        assertEquals(commandChooser.chooseCommand(""), TelegramCommand.NOTHING);
     }
 
     @Test
     public void testHelp() throws Exception {
-        assertEquals(TelegramCommand.HELP, commandChooser.chooseCommand("/help"));
-    }
-
-    @Test
-    public void testPlayerInfo() throws Exception {
-        assertEquals(TelegramCommand.PLAYER_INFO, commandChooser.chooseCommand("/player_info 123123"));
+        assertEquals(commandChooser.chooseCommand("/help"), TelegramCommand.HELP);
     }
 
     @Test
     public void testPlayerInfoWithoutArg() throws Exception {
-        assertEquals(TelegramCommand.PLAYER_INFO, commandChooser.chooseCommand("/player_info"));
+        assertEquals(commandChooser.chooseCommand("/player_info"), TelegramCommand.PLAYER_INFO);
     }
 
     @Test
     public void testStart() throws Exception {
-        assertEquals(TelegramCommand.START, commandChooser.chooseCommand("/start"));
+        assertEquals(commandChooser.chooseCommand("/start"), TelegramCommand.START);
     }
 }

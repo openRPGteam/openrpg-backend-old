@@ -6,7 +6,8 @@ import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
 import info.openrpg.database.repositories.MessageRepository;
 import info.openrpg.database.repositories.PlayerRepository;
-import info.openrpg.telegram.commands.InlineCommands;
+import info.openrpg.telegram.commands.InlineCommand;
+import info.openrpg.telegram.commands.MessageWrapper;
 import info.openrpg.telegram.input.InputMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 
@@ -31,7 +32,7 @@ public class SendMessageCommand implements ExecutableCommand {
     }
 
     @Override
-    public List<SendMessage> execute(InputMessage inputMessage) {
+    public List<MessageWrapper> execute(InputMessage inputMessage) {
         return Optional.of(inputMessage)
                 .filter(iM -> iM.hasArguments(2))
                 .map(iM -> iM.getArgument(1))
@@ -48,10 +49,12 @@ public class SendMessageCommand implements ExecutableCommand {
                                         )
                                 )
                         )
+                        .map(MessageWrapper::new)
                         .map(Collections::singletonList)
-                        .orElse(Collections.singletonList(new SendMessage()
+                        .orElse(Collections.singletonList(
+                                new MessageWrapper(new SendMessage()
                                         .setChatId(inputMessage.getChatId())
-                                        .setText(UNKNOWN_PLAYER_MESSAGE)
+                                        .setText(UNKNOWN_PLAYER_MESSAGE))
                                 )
                         )
                 )
@@ -59,18 +62,18 @@ public class SendMessageCommand implements ExecutableCommand {
     }
 
     @Override
-    public List<SendMessage> handleCrash(RuntimeException e, InputMessage inputMessage) {
+    public List<MessageWrapper> handleCrash(RuntimeException e, InputMessage inputMessage) {
         return Collections.emptyList();
     }
 
-    private List<SendMessage> parseArguments(InputMessage inputMessage) {
+    private List<MessageWrapper> parseArguments(InputMessage inputMessage) {
         return Optional.of(inputMessage)
                 .filter(iM -> iM.hasArguments(1))
                 .map(this::typeSendMessage)
                 .orElseGet(() -> playersButtonList(0, inputMessage.getChatId()));
     }
 
-    private List<SendMessage> typeSendMessage(InputMessage inputMessage) {
+    private List<MessageWrapper> typeSendMessage(InputMessage inputMessage) {
         Player player = playerRepository.findPlayerByUsername(inputMessage.getFrom().getUserName())
                 .orElseThrow(() -> new RuntimeException("WTF"));
         Message message = Message.builder()
@@ -78,18 +81,18 @@ public class SendMessageCommand implements ExecutableCommand {
                 .message(inputMessage.getText())
                 .build();
         messageRepository.saveMessage(message);
-        return Collections.singletonList(new SendMessage()
+        return Collections.singletonList(new MessageWrapper(new SendMessage()
                 .setText("Напишите текст, который вы хотите отправить:")
-                .setChatId(inputMessage.getChatId()));
+                .setChatId(inputMessage.getChatId())));
     }
 
-    private List<SendMessage> playersButtonList(int offset, long chatId) {
+    private List<MessageWrapper> playersButtonList(int offset, long chatId) {
         int playersNumber = playerRepository.selectPlayersNumber();
         List<Player> players = playerRepository.selectPlayerWithOffset(offset, 10);
         SendMessage sendMessage = new SendMessage()
                 .setText("Выберите игрока, которому вы хотите отправить сообщение:")
-                .setReplyMarkup(InlineCommands.playerList(Commands.SEND_MESSAGE, players, offset, playersNumber))
+                .setReplyMarkup(InlineCommand.playerList(Commands.SEND_MESSAGE, players, offset, playersNumber))
                 .setChatId(chatId);
-        return Collections.singletonList(sendMessage);
+        return Collections.singletonList(new MessageWrapper(sendMessage));
     }
 }

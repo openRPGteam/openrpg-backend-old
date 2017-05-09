@@ -4,6 +4,7 @@ import info.openrpg.database.models.Chat;
 import info.openrpg.database.models.Message;
 import info.openrpg.database.models.Player;
 import info.openrpg.telegram.commands.CommandChooser;
+import info.openrpg.telegram.commands.MessageWrapper;
 import info.openrpg.telegram.commands.TelegramCommand;
 import info.openrpg.telegram.commands.actions.ExecutableCommand;
 import info.openrpg.telegram.input.InputMessage;
@@ -11,6 +12,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -91,11 +93,11 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                 .findFirst();
 
         return messageQueue.map(message -> {
-                    entityManager.remove(message);
-                    entityManager.getTransaction().commit();
-                    entityManager.close();
-                    return message;
-                })
+            entityManager.remove(message);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            return message;
+        })
                 .map(message -> new InputMessage(inputMessage, message.getMessage(), commandChooser))
                 .orElse(inputMessage);
     }
@@ -125,6 +127,14 @@ public class OpenRpgBot extends TelegramLongPollingBot {
         }
     }
 
+    private void sendImage(SendPhoto photo) {
+        try {
+            sendPhoto(photo);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void answerCallbackText(String callbackQueryId) {
         try {
             answerCallbackQuery(new AnswerCallbackQuery().setCallbackQueryId(callbackQueryId).setShowAlert(false));
@@ -145,13 +155,20 @@ public class OpenRpgBot extends TelegramLongPollingBot {
         entityManager.getTransaction().begin();
         ExecutableCommand command = telegramCommand.getExecutableCommand(entityManager);
         try {
-            List<SendMessage> sendMessageList = command.execute(inputMessage);
+            List<MessageWrapper> sendMessageList = command.execute(inputMessage);
             entityManager.getTransaction().commit();
-            sendMessageList.forEach(this::sendText);
+            sendMessageList.forEach(this::sendMessageInWrapper);
         } catch (RuntimeException e) {
             handleCrash(e, entityManager, command, inputMessage);
         }
         entityManager.close();
+    }
+
+    private void sendMessageInWrapper(MessageWrapper messageWrapper) {
+        messageWrapper.getMessage()
+                .ifPresent(this::sendText);
+        messageWrapper.getPhoto()
+                .ifPresent(this::sendImage);
     }
 
     private void handleCrash(
@@ -166,12 +183,12 @@ public class OpenRpgBot extends TelegramLongPollingBot {
                 .orElseGet(() -> {
                     logger.warning(e.getClass().getName());
                     e.printStackTrace();
-                    return Collections.singletonList(
-                            new SendMessage()
-                                    .setText("Извини, что-то пошло не так.\nРазработчик получает пизды.")
-                                    .setChatId(inputMessage.getChatId())
-                    );
+                    SendMessage sendMessage = new SendMessage()
+                            .setText("Извини, что-то пошло не так.\nРазработчик получает пизды.")
+                            .setChatId(inputMessage.getChatId());
+                    MessageWrapper wrapper = new MessageWrapper(sendMessage);
+                    return Collections.singletonList(wrapper);
                 })
-                .forEach(this::sendText);
+                .forEach(this::sendMessageInWrapper);
     }
 }

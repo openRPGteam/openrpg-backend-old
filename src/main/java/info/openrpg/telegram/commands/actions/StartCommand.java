@@ -2,6 +2,7 @@ package info.openrpg.telegram.commands.actions;
 
 import info.openrpg.database.models.Player;
 import info.openrpg.database.repositories.PlayerRepository;
+import info.openrpg.telegram.commands.MessageWrapper;
 import info.openrpg.telegram.input.InputMessage;
 import org.hibernate.exception.ConstraintViolationException;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -23,7 +24,7 @@ public class StartCommand implements ExecutableCommand {
     }
 
     @Override
-    public List<SendMessage> execute(InputMessage inputMessage) {
+    public List<MessageWrapper> execute(InputMessage inputMessage) {
         User user = inputMessage.getFrom();
         Player player = Player.builder()
                 .id(user.getId())
@@ -34,21 +35,21 @@ public class StartCommand implements ExecutableCommand {
 
         playerRepository.savePlayer(player);
 
-        return Collections.singletonList(
-                new SendMessage()
-                        .setChatId(inputMessage.getChatId())
-                        .setText(FIRST_MESSAGE)
+        return Collections.singletonList(new MessageWrapper(new SendMessage()
+                .setChatId(inputMessage.getChatId())
+                .setText(FIRST_MESSAGE))
         );
     }
 
     @Override
-    public List<SendMessage> handleCrash(RuntimeException e, InputMessage inputMessage) {
+    public List<MessageWrapper> handleCrash(RuntimeException e, InputMessage inputMessage) {
         if (e instanceof PersistenceException) {
             if (e.getCause() instanceof ConstraintViolationException) {
                 return Collections.singletonList(
-                        new SendMessage()
+                        new MessageWrapper(new SendMessage()
                                 .setChatId(inputMessage.getChatId())
                                 .setText(ALREADY_REGISTERED_MESSAGE)
+                        )
                 );
             }
         }
